@@ -18,13 +18,13 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand(COMMAND_UPDATE_LOCAL_BRANCHES, async () => {
       await UpdateLocalBranches();
-    })
+    }),
   );
 
   const config = vscode.workspace.getConfiguration("ToolGit");
   const autoUpdateLocalBranches = config.get<boolean>(
     "AutoUpdateLocalBranches",
-    false
+    false,
   );
   if (autoUpdateLocalBranches) {
     UpdateLocalBranches();

@@ -24,7 +24,7 @@ const REMOTE = "REMOTE";
 
 const branchOutDateTobranchBase = async function (
   branch: string,
-  branchBase: string
+  branchBase: string,
 ): Promise<boolean> {
   const listBranch = (
     await runCommand(COMMAND_GIT.LOG_BRANCH + " -n 100 " + branchBase)
@@ -33,7 +33,7 @@ const branchOutDateTobranchBase = async function (
     .split("\n");
   return (
     listBranch.findIndex(
-      (x) => x.split(",").findIndex((y) => y.trim() === branch) !== -1
+      (x) => x.split(",").findIndex((y) => y.trim() === branch) !== -1,
     ) !== -1
   );
 };
@@ -44,29 +44,29 @@ const UpdateCurrentBranch = async function (branch: string, brachBase: string) {
   if (!isClean) {
     logWarning(
       `Changes detected in branch "${branch}". Perform a clean first.`,
-      true
+      true,
     );
     return;
   }
   await runCommand(
     COMMAND_GIT.BRACH_CURRENT_UPDATE_FORCE.replace(
       /\$\{branch\_base\}/,
-      brachBase
-    )
+      brachBase,
+    ),
   );
   logInfo(`Current branch "${branch}" updated successfully`);
 };
 const updateOutdatedBranches = async function (
   branch: string,
-  branchBase: string
+  branchBase: string,
 ) {
   logInfo(`Updating outdated branch "${branch}" to "${branchBase}"`);
 
   await runCommand(
     COMMAND_GIT.BRACH_UPDATE_FORCE.replace(/\$\{branch\}/, branch).replace(
       /\$\{branch\_base\}/,
-      branchBase
-    )
+      branchBase,
+    ),
   );
 
   logInfo(`Outdated branch "${branch}" updated successfully`);
@@ -91,17 +91,17 @@ const traverseBranches = async function (listBranch: ObjectWithAnyValues) {
     const branchRemote = `origin/${branch}`;
     const isBranchOutDate = await branchOutDateTobranchBase(
       branch,
-      branchRemote
+      branchRemote,
     );
     if (!isBranchOutDate) {
       const isBranchBaseOutDate = await branchOutDateTobranchBase(
         branchRemote,
-        branch
+        branch,
       );
       if (isBranchBaseOutDate) {
         logWarning(
           `Remote branch "${branchRemote}" has changes that need to be pushed`,
-          true
+          true,
         );
       } else {
         logWarning(`Manual review needed for branch "${branch}"`, true);
@@ -141,8 +141,16 @@ export async function UpdateLocalBranches() {
         const branchArray =
           branchFullName.match(/^(refs\/heads\/)(.*)/) ??
           (branchFullName.match(
-            /^(refs\/remotes\/origin\/)(.*)/
+            /^(refs\/remotes\/origin\/)(.*)/,
           ) as RegExpMatchArray);
+
+        if (!branchArray) {
+          logWarning(
+            `Branch name "${branchFullName}" does not match expected patterns`,
+            true,
+          );
+          return prev;
+        }
 
         let branchName = branchArray[2];
         let branchObj = prev[branchName] ?? {};
